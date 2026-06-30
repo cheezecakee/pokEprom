@@ -237,19 +237,21 @@ class ReadScreen(Screen):
         app_state['status'] = 'reading'
         self.status = 'reading'
 
-    process = subprocess.Popen(
+        process = subprocess.Popen(
             ['flashrom', '-p', 'ch341a_spi', '-r', 'saves/backups/read_temp.bin'],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True
-    )
-    for line in process.stdout:
-        self.log_lines.append(line_strip())
-        if 'Reading' in line:
-            try: 
-                self.progress = int(line.split('%')[0].split()[-1])
-            except:
-                pass
+        )
+
+        for line in process.stdout:
+            self.log_lines.append(line.strip())
+            if 'Reading' in line:
+                try:
+                    self.progress = int(line.split('%')[0].split()[-1])
+                except:
+                    pass
+
         process.wait()
 
         if process.returncode == 0:
@@ -258,7 +260,6 @@ class ReadScreen(Screen):
         else:
             self.status = 'error'
             app_state['status'] = 'error'
-
     # Mock
         # fake_lines = [
         #           'Found Winbond flash chip "W25Q64FV"',
@@ -426,8 +427,8 @@ class WriteScreen(Screen):
         #     self.log_lines.append(line)
         #     self.progress = int((i + 1) / len(fake_lines) * 100)
 
-        self.status = 'done'
-        app_state['status'] = 'connected'
+        # self.status = 'done'
+        # app_state['status'] = 'connected'
 
     def start_write(self):
         thread = threading.Thread(target=self._run_backup_then_write)
