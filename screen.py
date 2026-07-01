@@ -1,12 +1,23 @@
 import sys
+import os
+
+# Must be set before importing pygame
+os.environ['SDL_VIDEODRIVER'] = 'dummy'
+
 import pygame
 import datetime
 import threading
 import subprocess
 import time
-import os
+
+from fb_display import fb_init, fb_push, fb_close
+from kb_input import KeyboardBridge
 
 pygame.init()
+fb_init()
+
+keyboard = KeyboardBridge()
+keyboard.start()
 fps = 60
 clock = pygame.time.Clock()
 width = 320
@@ -179,7 +190,7 @@ class DetectScreen(Screen):
 
     def _parse_chips(self, output): 
         chips = []
-        for line in output.splitline():
+        for line in output.splitlines():
             if line.startswith('Found'):
                 chips.append(line)
         return chips
@@ -645,6 +656,10 @@ while running:
 
     nav.current().draw()
     draw_header()
-    pygame.display.flip()
+    fb_push(screen)
     clock.tick(fps)
+
+keyboard.stop()
+fb_close()          # blanks the TFT so it doesn't freeze on last frame
 pygame.quit()
+subprocess.run(['chvt', '1'])   # forces console to repaint on tty1
